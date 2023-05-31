@@ -1,5 +1,5 @@
 // Default URL for triggering event grid function in the local environment.
-// http://localhost:7071/runtime/webhooks/EventGrid?functionName={functionname}
+// http://localhost:7071/runtime/webhooks/EventGrid?functionName=Thumbnail
 
 // Learn how to locally debug an Event Grid-triggered function:
 //    https://aka.ms/AA30pjh
@@ -106,6 +106,7 @@ namespace ImageFunctions
 
                             var thumbnailBlobName = $"{blobName}_{width}{extension}";
 
+                            input.Position = 0; // Reset the position of the input stream. Without this, second image processing will fail.
                             using (var output = new MemoryStream())
                             using (Image<Rgba32> image = Image.Load(input))
                             {
