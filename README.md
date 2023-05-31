@@ -35,7 +35,7 @@ az storage account show-connection-string --name "owplocalimages" --resource-gro
 Give function app access to storage account (use connection string from above) and set environment variables. Thumbnails must be stored in a different container than the source, otherwise, the resized images will trigger the resize event, causing an infinite loop.
 
 ```
-az functionapp config appsettings set --name "owp-gpt-image-resize" --resource-group "owp-local" --settings AzureWebJobsStorage=$storageConnectionString THUMBNAIL_CONTAINER_NAME=owp-local-thumbs THUMBNAIL_WIDTHS="96,512,800" FUNCTIONS_EXTENSION_VERSION=~2 FUNCTIONS_WORKER_RUNTIME=dotnet
+az functionapp config appsettings set --name "owp-gpt-image-resize" --resource-group "owp-local" --settings AzureWebJobsStorage=$storageConnectionString THUMBNAIL_CONTAINER_NAME=owp-local-thumbs THUMBNAIL_WIDTHS="96,512,900" FUNCTIONS_EXTENSION_VERSION=~2 FUNCTIONS_WORKER_RUNTIME=dotnet
 ```
 
 Deploy:
