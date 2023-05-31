@@ -46,6 +46,12 @@ Deploy:
 az functionapp deployment source config --name "owp-gpt-image-resize" --resource-group "owp-local" --branch main --manual-integration --repo-url https://github.com/examind-ai/owp-gpt-image-resize
 ```
 
+Trigger redeployment:
+
+```
+az functionapp deployment source sync --name "owp-gpt-image-resize" --resource-group "owp-local"
+```
+
 Create event subscription:
 
 Follow remainder of instructions here: https://learn.microsoft.com/en-us/azure/event-grid/resize-images-on-storage-blob-upload-event?tabs=azure-cli
