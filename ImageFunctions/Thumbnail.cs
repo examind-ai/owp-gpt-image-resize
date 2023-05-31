@@ -98,13 +98,14 @@ namespace ImageFunctions
                         var blobServiceClient = new BlobServiceClient(BLOB_STORAGE_CONNECTION_STRING);
                         var blobContainerClient = blobServiceClient.GetBlobContainerClient(thumbContainerName);
                         var blobName = GetBlobNameFromUrl(createdEvent.Url);
+                        var blobNameWithoutExtension = Path.GetFileNameWithoutExtension(blobName);
 
                         foreach (var widthString in thumbnailWidths)
                         {
                             if (!int.TryParse(widthString, out int width))
                                 continue;
 
-                            var thumbnailBlobName = $"{blobName}_{width}{extension}";
+                            var thumbnailBlobName = $"{blobNameWithoutExtension}_{width}{extension}";
 
                             input.Position = 0; // Reset the position of the input stream. Without this, second image processing will fail.
                             using (var output = new MemoryStream())
