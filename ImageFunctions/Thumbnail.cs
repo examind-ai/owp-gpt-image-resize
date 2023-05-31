@@ -38,6 +38,13 @@ namespace ImageFunctions
             return blobClient.Name;
         }
 
+        private static string GetExtensionFromUrl(string url)
+        {
+            var uri = new Uri(url);
+            var extension = Path.GetExtension(uri.LocalPath);
+            return extension;
+        }
+
         private static IImageEncoder GetEncoder(string extension)
         {
             IImageEncoder encoder = null;
@@ -86,22 +93,30 @@ namespace ImageFunctions
 
                     if (encoder != null)
                     {
-                        var thumbnailWidth = Convert.ToInt32(Environment.GetEnvironmentVariable("THUMBNAIL_WIDTH"));
+                        var thumbnailWidths = Environment.GetEnvironmentVariable("THUMBNAIL_WIDTHS").Split(',');
                         var thumbContainerName = Environment.GetEnvironmentVariable("THUMBNAIL_CONTAINER_NAME");
                         var blobServiceClient = new BlobServiceClient(BLOB_STORAGE_CONNECTION_STRING);
                         var blobContainerClient = blobServiceClient.GetBlobContainerClient(thumbContainerName);
                         var blobName = GetBlobNameFromUrl(createdEvent.Url);
 
-                        using (var output = new MemoryStream())
-                        using (Image<Rgba32> image = Image.Load(input))
+                        foreach (var widthString in thumbnailWidths)
                         {
-                            var divisor = image.Width / thumbnailWidth;
-                            var height = Convert.ToInt32(Math.Round((decimal)(image.Height / divisor)));
+                            if (!int.TryParse(widthString, out int width))
+                                continue;
 
-                            image.Mutate(x => x.Resize(thumbnailWidth, height));
-                            image.Save(output, encoder);
-                            output.Position = 0;
-                            await blobContainerClient.UploadBlobAsync(blobName, output);
+                            var thumbnailBlobName = $"{blobName}_{width}{extension}";
+
+                            using (var output = new MemoryStream())
+                            using (Image<Rgba32> image = Image.Load(input))
+                            {
+                                var divisor = image.Width / width;
+                                var height = Convert.ToInt32(Math.Round((decimal)(image.Height / divisor)));
+
+                                image.Mutate(x => x.Resize(width, height));
+                                image.Save(output, encoder);
+                                output.Position = 0;
+                                await blobContainerClient.UploadBlobAsync(thumbnailBlobName, output);
+                            }
                         }
                     }
                     else
