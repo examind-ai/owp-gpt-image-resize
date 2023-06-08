@@ -7,6 +7,7 @@
 // Use for local testing:
 //   https://{ID}.ngrok.io/runtime/webhooks/EventGrid?functionName=Thumbnail
 
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
@@ -29,7 +30,7 @@ namespace ImageFunctions
 {
     public static class Thumbnail
     {
-        private static readonly string BLOB_STORAGE_CONNECTION_STRING = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+        private static readonly string BLOB_STORAGE_SERVICE_URL = Environment.GetEnvironmentVariable("STORAGE_SERVICE_URL");
 
         private static string GetBlobNameFromUrl(string bloblUrl)
         {
@@ -95,7 +96,9 @@ namespace ImageFunctions
                     {
                         var thumbnailWidths = Environment.GetEnvironmentVariable("THUMBNAIL_WIDTHS").Split(',');
                         var thumbContainerName = Environment.GetEnvironmentVariable("THUMBNAIL_CONTAINER_NAME");
-                        var blobServiceClient = new BlobServiceClient(BLOB_STORAGE_CONNECTION_STRING);
+                        var blobServiceClient = new BlobServiceClient(
+                            new Uri(BLOB_STORAGE_SERVICE_URL.TrimEnd('/')), // BLOB_STORAGE_SERVICE_URL typically looks like this, https://owplocalimages.blob.core.windows.net/, so trim the extra /
+                            new DefaultAzureCredential());
                         var blobContainerClient = blobServiceClient.GetBlobContainerClient(thumbContainerName);
                         var blobName = GetBlobNameFromUrl(createdEvent.Url);
                         var blobNameWithoutExtension = Path.GetFileNameWithoutExtension(blobName);
