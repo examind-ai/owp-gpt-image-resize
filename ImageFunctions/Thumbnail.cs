@@ -8,6 +8,7 @@
 //   https://{ID}.ngrok.io/runtime/webhooks/EventGrid?functionName=Thumbnail
 
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
@@ -21,6 +22,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -70,6 +72,24 @@ namespace ImageFunctions
             return encoder;
         }
 
+        private static string GetMimeTypeFromFileName(string filePath)
+        {
+            var mimeTypes = new Dictionary<string, string>
+            {
+                { ".png", "image/png" },
+                { ".jpg", "image/jpeg" },
+                { ".jpeg", "image/jpeg" },
+                { ".gif", "image/gif" },
+            };
+
+            string fileExtension = Path.GetExtension(filePath)?.ToLower();
+
+            if (fileExtension != null && mimeTypes.ContainsKey(fileExtension))
+                return mimeTypes[fileExtension];
+
+            return "application/octet-stream";
+        }
+
         [FunctionName("Thumbnail")]
         public static async Task Run(
             [EventGridTrigger]EventGridEvent eventGridEvent,
@@ -110,7 +130,14 @@ namespace ImageFunctions
                                 image.Mutate(x => x.Resize(width, height));
                                 image.Save(output, encoder);
                                 output.Position = 0;
-                                await blobContainerClient.UploadBlobAsync(thumbnailBlobName, output);
+
+                                var blobClient = blobContainerClient.GetBlobClient(thumbnailBlobName);
+                                await blobClient.UploadAsync(output, new BlobHttpHeaders
+                                {
+                                    // Include ContentType to enable browsers to provide functionality based on file type.
+                                    // Technique: https://stackoverflow.com/a/60743231/188740
+                                    ContentType = GetMimeTypeFromFileName(thumbnailBlobName)
+                                });
                             }
                         }
                     }
