@@ -38,13 +38,6 @@ namespace ImageFunctions
             return blobClient.Name;
         }
 
-        private static string GetExtensionFromUrl(string url)
-        {
-            var uri = new Uri(url);
-            var extension = Path.GetExtension(uri.LocalPath);
-            return extension;
-        }
-
         private static IImageEncoder GetEncoder(string extension)
         {
             IImageEncoder encoder = null;
