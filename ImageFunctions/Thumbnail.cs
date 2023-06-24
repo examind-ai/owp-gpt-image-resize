@@ -136,7 +136,8 @@ namespace ImageFunctions
                                 {
                                     // Include ContentType to enable browsers to provide functionality based on file type.
                                     // Technique: https://stackoverflow.com/a/60743231/188740
-                                    ContentType = GetMimeTypeFromFileName(thumbnailBlobName)
+                                    ContentType = GetMimeTypeFromFileName(thumbnailBlobName),
+                                    CacheControl = "max-age=31536000"
                                 });
                             }
                         }
